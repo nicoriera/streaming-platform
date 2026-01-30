@@ -1,0 +1,24 @@
+{
+  "name": "streaming-platform",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Plateforme de streaming vidéo en direct de pointe avec SolidJS, Bun, tRPC",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "bun run scripts/dev.sh",
+    "build": "bun run scripts/build.sh",
+    "test": "bun run scripts/test.sh",
+    "wasm:build": "bun run scripts/wasm-build.sh",
+    "clean": "rm -rf node_modules packages/*/node_modules packages/*/dist packages/*/.bun"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "typescript": "^5.3.3"
+  },
+  "engines": {
+    "bun": ">=1.0.0"
+  },
+  "packageManager": "bun@1.0.0"
+}

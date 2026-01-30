@@ -1,0 +1,64 @@
+{
+  "compilerOptions": {
+    /* Language and Environment */
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM", "DOM.Iterable", "WebWorker"],
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "jsx": "preserve",
+    "jsxImportSource": "solid-js",
+    
+    /* Type Checking - Strict */
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+    "noImplicitReturns": true,
+    "noImplicitOverride": true,
+    "noPropertyAccessFromIndexSignature": true,
+    
+    /* Emit */
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "outDir": "./dist",
+    "removeComments": false,
+    "importHelpers": true,
+    
+    /* Interop Constraints */
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "forceConsistentCasingInFileNames": true,
+    "isolatedModules": true,
+    
+    /* Path Aliases for Monorepo */
+    "baseUrl": ".",
+    "paths": {
+      "@frontend/*": ["packages/frontend/src/*"],
+      "@backend/*": ["packages/backend/src/*"],
+      "@shared/*": ["packages/shared/src/*"],
+      "@types/*": ["packages/types/*"],
+      "@wasm/*": ["packages/wasm/pkg/*"]
+    },
+    
+    /* Skip type checking */
+    "skipLibCheck": true,
+    
+    /* Bun specific */
+    "types": ["bun-types"]
+  },
+  "include": [
+    "packages/**/*.ts",
+    "packages/**/*.tsx"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    ".bun",
+    "target",
+    "**/*.test.ts",
+    "**/*.spec.ts"
+  ]
+}

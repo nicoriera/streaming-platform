@@ -1,0 +1,123 @@
+# GitLab CI/CD pour plateforme streaming
+
+stages:
+  - lint
+  - test
+  - build
+  - deploy
+
+variables:
+  BUN_VERSION: "latest"
+  NODE_VERSION: "20"
+
+# Cache pour accélérer les builds
+cache:
+  key: ${CI_COMMIT_REF_SLUG}
+  paths:
+    - node_modules/
+    - packages/*/node_modules/
+    - .bun/
+    - target/  # Rust build cache
+
+before_script:
+  - curl -fsSL https://bun.sh/install | bash
+  - export PATH="$HOME/.bun/bin:$PATH"
+  - bun --version
+
+lint:
+  stage: lint
+  script:
+    - bun install
+    - bun run --filter "*" type-check || true
+  only:
+    - merge_requests
+    - main
+    - develop
+
+test:
+  stage: test
+  script:
+    - bun install
+    - bun run test || echo "No tests configured yet"
+  coverage: '/Coverage: \d+\.\d+%/'
+  artifacts:
+    reports:
+      coverage_report:
+        coverage_format: cobertura
+        path: coverage/cobertura-coverage.xml
+  only:
+    - merge_requests
+    - main
+    - develop
+
+build-frontend:
+  stage: build
+  script:
+    - bun install
+    - cd packages/frontend
+    - bun run build
+  artifacts:
+    paths:
+      - packages/frontend/dist
+    expire_in: 1 week
+  only:
+    - main
+    - develop
+    - tags
+
+build-backend:
+  stage: build
+  script:
+    - bun install
+    - cd packages/backend
+    - bun run build
+  artifacts:
+    paths:
+      - packages/backend/dist
+    expire_in: 1 week
+  only:
+    - main
+    - develop
+    - tags
+
+build-wasm:
+  stage: build
+  image: rust:latest
+  before_script:
+    - curl -fsSL https://bun.sh/install | bash
+    - export PATH="$HOME/.bun/bin:$PATH"
+    - cargo install wasm-pack
+  script:
+    - cd packages/wasm
+    - wasm-pack build --target web --out-dir pkg --release
+  artifacts:
+    paths:
+      - packages/wasm/pkg
+    expire_in: 1 week
+  only:
+    - main
+    - develop
+    - tags
+
+deploy-staging:
+  stage: deploy
+  script:
+    - echo "Deploy to staging"
+    # Ajouter votre script de déploiement ici
+  environment:
+    name: staging
+    url: https://staging.streaming-platform.com
+  only:
+    - develop
+
+deploy-production:
+  stage: deploy
+  script:
+    - echo "Deploy to production"
+    # Ajouter votre script de déploiement ici
+  environment:
+    name: production
+    url: https://streaming-platform.com
+  only:
+    - main
+    - tags

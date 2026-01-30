@@ -1,0 +1,266 @@
+# Règles Cursor pour Plateforme Streaming
+
+## Stack Technologique
+
+- **Frontend** : SolidJS avec TypeScript strict
+- **Backend** : Bun runtime avec TypeScript natif
+- **API** : tRPC pour type safety end-to-end
+- **Base de données** : PostgreSQL + ScyllaDB + Redis
+- **Protocoles** : WebTransport + RTWebSocket (stratégie multi-protocole)
+- **Traitement vidéo** : WebAssembly + Rust
+- **Architecture** : Monorepo avec Module Federation
+
+## SolidJS - Règles de développement
+
+### Reactivity
+- Toujours utiliser `createSignal` pour l'état réactif, jamais de variables mutables directes
+- Utiliser `createEffect` pour les effets de bord, pas `useEffect`
+- Utiliser `createMemo` pour les valeurs calculées coûteuses
+- Éviter les re-renders inutiles avec la fine-grained reactivity de SolidJS
+- Utiliser `untrack` pour accéder aux valeurs sans créer de dépendances
+
+### Composants
+- Utiliser `<script setup>` style avec SolidJS (pas de setup() explicite)
+- Les composants doivent être des fonctions pures qui retournent JSX
+- Utiliser `Show`, `For`, `Switch` pour le rendu conditionnel (pas de ternaires complexes)
+- Props doivent être typées avec TypeScript strict
+- Utiliser `splitProps` pour séparer les props si nécessaire
+
+### Performance
+- Éviter les créations d'objets dans les templates (créer en dehors)
+- Utiliser `lazy` pour le code splitting des composants
+- Virtual scrolling pour les listes longues (streams, chat)
+- Optimiser les images avec lazy loading et WebP/AVIF
+- Utiliser `v-memo` équivalent avec `createMemo` pour les listes
+
+### Patterns
+```typescript
+// ✅ Bon
+const [count, setCount] = createSignal(0);
+createEffect(() => {
+  console.log(count());
+});
+
+// ❌ Mauvais
+let count = 0; // Pas réactif
+```
+
+## Bun Runtime - Règles de développement
+
+### APIs natives
+- Utiliser les APIs natives de Bun : `Bun.file()`, `Bun.serve()`, `Bun.spawn()`
+- Pas besoin de polyfills pour fetch, file, crypto (natif dans Bun)
+- Utiliser `Bun.write()` pour les opérations de fichier
+- Utiliser `Bun.serve()` pour créer des serveurs HTTP
+
+### TypeScript
+- Bun supporte TypeScript nativement, pas besoin de compilation séparée
+- Utiliser les types natifs de Bun : `BunFile`, `Server`, etc.
+- Imports ESM uniquement (pas de CommonJS)
+
+### Performance
+- Utiliser les APIs natives plutôt que des packages npm quand possible
+- Profiter de la performance 3x supérieure à Node.js
+- Cold starts optimaux pour edge functions
+
+### Patterns
+```typescript
+// ✅ Bon - Bun natif
+const server = Bun.serve({
+  port: 3000,
+  fetch(req) {
+    return new Response("Hello");
+  }
+});
+
+// ❌ Mauvais - Node.js style
+import http from 'http';
+```
+
+## tRPC - Règles de développement
+
+### Type Safety
+- Toujours typer les inputs et outputs des procédures
+- Utiliser les types partagés depuis `@shared/types`
+- Pas de codegen nécessaire, type safety automatique
+- Utiliser `zod` pour la validation des schémas
+
+### Routes
+- Organiser les routes par domaine (streaming, chat, users, payments)
+- Utiliser `router` pour créer des sous-routers
+- Utiliser `procedure` pour créer des procédures typées
+- Subscriptions pour données temps réel (chat, stats)
+
+### Patterns
+```typescript
+// ✅ Bon
+export const streamingRouter = router({
+  getStream: procedure
+    .input(z.object({ streamId: z.string() }))
+    .query(async ({ input }) => {
+      return await getStream(input.streamId);
+    }),
+});
+
+// ❌ Mauvais - Pas de types
+export const streamingRouter = router({
+  getStream: procedure.query(async ({ input }) => {
+    return await getStream(input.streamId); // input non typé
+  }),
+});
+```
+
+## WebAssembly + Rust - Règles de développement
+
+### Intégration
+- Utiliser `wasm-bindgen` pour créer les bindings Rust vers JavaScript
+- Exposer les fonctions Rust avec `#[wasm_bindgen]`
+- Utiliser Web Workers pour le traitement vidéo lourd (non-blocking)
+- Charger les modules WASM de manière asynchrone
+
+### Performance
+- Traitement vidéo lourd uniquement (détection deepfake, enhancement, filtres)
+- Ne pas utiliser WASM pour la logique métier simple (JavaScript plus rapide)
+- Optimiser les transferts de données (utiliser SharedArrayBuffer si possible)
+
+### Patterns
+```rust
+// ✅ Bon
+#[wasm_bindgen]
+pub fn enhance_video(frame: &[u8]) -> Vec<u8> {
+    // Traitement vidéo lourd
+}
+
+// ❌ Mauvais - Logique simple en WASM
+#[wasm_bindgen]
+pub fn add(a: i32, b: i32) -> i32 {
+    a + b // Trop simple pour WASM
+}
+```
+
+## Architecture Monorepo
+
+### Structure
+- Packages indépendants dans `packages/`
+- Code partagé dans `packages/shared/`
+- Types partagés dans `packages/types/`
+- Module Federation pour intégration runtime
+
+### Imports
+- Utiliser les path aliases : `@frontend/`, `@backend/`, `@shared/`
+- Pas d'imports relatifs entre packages
+- Types partagés via `@shared/types`
+
+### Build
+- Build indépendant par package
+- Module Federation pour micro frontends
+- Code splitting agressif
+
+## WebTransport / RTWebSocket - Stratégie multi-protocole
+
+### Détection navigateur
+- Détecter le support WebTransport automatiquement
+- Fallback RTWebSocket pour Safari/iOS
+- Utiliser WebRTC DataChannel pour P2P scenarios
+
+### Patterns
+```typescript
+// ✅ Bon - Stratégie adaptative
+const transport = await detectTransport();
+if (transport === 'webtransport') {
+  return new WebTransport(url);
+} else {
+  return new RTWebSocket(url);
+}
+
+// ❌ Mauvais - Protocole fixe
+const ws = new WebSocket(url); // Pas de fallback
+```
+
+## ScyllaDB - Règles de développement
+
+### Queries temps réel
+- Utiliser ScyllaDB pour chat, métriques, analytics temps réel
+- PostgreSQL pour données relationnelles (utilisateurs, transactions)
+- Utiliser prepared statements pour performance
+- Batch les inserts quand possible
+
+### Patterns
+```typescript
+// ✅ Bon - Prepared statement
+const query = await session.prepare('SELECT * FROM chat WHERE room_id = ?');
+const result = await session.execute(query, [roomId]);
+
+// ❌ Mauvais - Query brute
+const result = await session.execute(`SELECT * FROM chat WHERE room_id = '${roomId}'`);
+```
+
+## Performance & Streaming
+
+### Latence
+- Optimiser pour latence minimale (<300ms avec WebTransport)
+- Utiliser edge computing pour modération AI (réduction 50-70%)
+- Cache agressif avec Redis
+- CDN pour distribution globale
+
+### Scalabilité
+- Architecture hybride Edge + Regional + Microservices
+- Scaling horizontal avec ScyllaDB
+- Load balancing avec Cloudflare Workers
+
+## Code Style
+
+### TypeScript
+- Toujours utiliser TypeScript strict
+- Pas de `any`, utiliser `unknown` si nécessaire
+- Utiliser les types explicites, éviter l'inférence complexe
+- Utiliser les utility types : `Pick`, `Omit`, `Partial`, etc.
+
+### Formatage
+- Utiliser Prettier avec configuration standard
+- 2 espaces pour l'indentation
+- Semicolons obligatoires
+- Quotes simples pour strings
+
+### Naming
+- camelCase pour variables et fonctions
+- PascalCase pour composants et types
+- UPPER_CASE pour constantes
+- Préfixer les interfaces avec `I` si nécessaire (optionnel)
+
+## Tests
+
+### Unitaires
+- Tests pour chaque fonction critique
+- Mock les dépendances externes
+- Tests de performance pour streaming
+
+### Intégration
+- Tests end-to-end pour les flows critiques
+- Tests de latence pour WebTransport/RTWebSocket
+- Tests de charge pour scalabilité
+
+## Sécurité
+
+### Authentification
+- WebAuthn pour authentification sans mot de passe
+- JWT avec expiration courte
+- Rate limiting sur toutes les APIs
+- Validation stricte des inputs avec zod
+
+### Streaming
+- Authentification des streams (tokens)
+- Chiffrement des streams (DTLS/SRTP)
+- Limitation du nombre de viewers par stream
+
+## Documentation
+
+### Code
+- Commenter le "pourquoi", pas le "quoi"
+- JSDoc pour les fonctions publiques
+- README dans chaque package
+
+### Architecture
+- Documenter les décisions architecturales
+- Diagrammes pour les flows complexes
+- Guide de contribution

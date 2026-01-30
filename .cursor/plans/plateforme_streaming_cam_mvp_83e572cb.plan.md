@@ -1,6 +1,6 @@
 ---
 name: Plateforme streaming cam MVP
-overview: "Plan complet pour créer une plateforme de streaming vidéo en direct de pointe (style Cam4) avec SolidJS/Bun, intégrant les dernières innovations 2025-2026 : AI, WebTransport/MoQ, edge computing, WebAssembly+Rust, et technologies immersives."
+overview: "Plan complet pour créer une plateforme de streaming vidéo en direct de pointe avec SolidJS/Bun, intégrant les dernières innovations 2025-2026 : AI, WebTransport/MoQ, edge computing, WebAssembly+Rust, et technologies immersives."
 todos: []
 isProject: false
 ---

@@ -9,7 +9,7 @@ isProject: false
 
 ## Vue d'ensemble
 
-Ce plan décrit la création d'une plateforme de streaming vidéo en direct inspirée de Cam4, mais intégrant les technologies les plus avancées de 2025-2026. L'architecture proposée est modulaire, extensible, et positionnée à la pointe de l'innovation technologique, intégrant AI, edge computing, Web3, et expériences immersives.
+Ce plan décrit la création d'une plateforme de streaming vidéo en direct, mais intégrant les technologies les plus avancées de 2025-2026. L'architecture proposée est modulaire, extensible, et positionnée à la pointe de l'innovation technologique, intégrant AI, edge computing, Web3, et expériences immersives.
 
 ## Innovations clés à intégrer (2025-2026)
 
